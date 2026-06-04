@@ -1,0 +1,29 @@
+# Compiled provider binary (from `go build` / `go install`)
+/terraform-provider-americancloud
+# GoReleaser output
+/dist/
+
+# Local Terraform state from manual/example runs
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Go test/coverage artifacts
+*.test
+coverage.out
+
+# Local-SDK development workspace (never commit; see the internal dev guide)
+go.work
+go.work.sum
+
+# Never commit credentials or local variable files
+.env
+.env.*
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+
+.DS_Store
