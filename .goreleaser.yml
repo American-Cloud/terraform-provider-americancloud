@@ -25,6 +25,12 @@ archives:
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
+  # The registry requires the manifest's checksum INSIDE SHA256SUMS — listing
+  # it under release.extra_files alone uploads the file but never checksums
+  # it, and ingestion fails with "missing SHA256 checksum for [...manifest.json]".
+  extra_files:
+    - glob: "terraform-registry-manifest.json"
+      name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
   name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
   algorithm: sha256
 
