@@ -28,3 +28,24 @@ func findInPages[T any](
 		}
 	}
 }
+
+// collectPages pages a list endpoint to exhaustion and returns all items —
+// the no-predicate sibling of findInPages, for Reads that need the full set
+// (e.g. a load balancer rule's applied instances).
+func collectPages[T any](
+	ctx context.Context,
+	listPage func(ctx context.Context, page, pageSize int) ([]T, error),
+) ([]T, error) {
+	const pageSize = 100
+	var all []T
+	for page := 1; ; page++ {
+		items, err := listPage(ctx, page, pageSize)
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, items...)
+		if len(items) < pageSize {
+			return all, nil
+		}
+	}
+}

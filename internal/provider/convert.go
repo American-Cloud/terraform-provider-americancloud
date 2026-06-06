@@ -2,6 +2,7 @@ package provider
 
 import (
 	"encoding/base64"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -117,4 +118,15 @@ func derefString(p *string) string {
 		return ""
 	}
 	return *p
+}
+
+// int64ToStringPtr converts an optional framework int to the SDK's
+// numeric-string pointer fields (nil when null/unknown) — some v1 endpoints
+// (ACL rule number/icmp fields, PF/LB ports) take numbers as strings.
+func int64ToStringPtr(v types.Int64) *string {
+	if v.IsNull() || v.IsUnknown() {
+		return nil
+	}
+	s := strconv.FormatInt(v.ValueInt64(), 10)
+	return &s
 }

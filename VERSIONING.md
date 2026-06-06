@@ -5,7 +5,7 @@ the exact-pinned `americancloud-sdk-go` dependency**, which is lockstep with the
 API platform version — so the pin transitively states the API surface the
 provider was built and tested against:
 
-> `terraform-provider-americancloud 0.1.x` ↔ `americancloud-sdk-go 1.3.1` ↔ API platform `1.3.1`
+> `terraform-provider-americancloud 0.2.x` ↔ `americancloud-sdk-go 1.3.1` ↔ API platform `1.3.1`
 
 Rules:
 

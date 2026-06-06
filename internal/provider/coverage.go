@@ -6,12 +6,13 @@ package provider
 // growth/renames into a failing test instead of a silent gap. Keys are
 // "<ClientField>.<Method>" matching the SDK client's struct field names.
 
-// coveredNamespaces are the SDK client namespaces v0.1 manages.
+// coveredNamespaces are the SDK client namespaces the provider manages.
 var coveredNamespaces = []string{
 	"DNSZones", "DNSRecords", "BlockStorage", "Snapshots",
 	"IsolatedNetworks", "VpcNetworks", "PublicIps", "FirewallRules",
 	"SSHKeys", "Vms", "Kubernetes", "ObjectStorage",
 	"Regions", "Images", "VMPackages",
+	"PortForwarding", "EgressRules", "NetworkACLs", "LoadBalancerRules",
 }
 
 // mapped: SDK methods a resource uses.
@@ -69,6 +70,29 @@ var mapped = map[string]bool{
 	"Regions.GetByLabelRegions":               true,
 	"Images.GetByLabelImages":                 true,
 	"VMPackages.GetByLabelVMPackages":         true,
+
+	"PortForwarding.CreatePortForwarding": true,
+	"PortForwarding.ListPortForwarding":   true,
+	"PortForwarding.DeletePortForwarding": true,
+
+	"EgressRules.CreateEgressRules": true,
+	"EgressRules.GetEgressRules":    true,
+	"EgressRules.DeleteEgressRules": true,
+
+	"NetworkACLs.CreateListNetworkACLs": true,
+	"NetworkACLs.GetListNetworkACLs":    true,
+	"NetworkACLs.DeleteListNetworkACLs": true,
+	"NetworkACLs.CreateRuleNetworkACLs": true,
+	"NetworkACLs.GetRuleNetworkACLs":    true,
+	"NetworkACLs.DeleteRuleNetworkACLs": true,
+
+	"LoadBalancerRules.CreateLoadBalancerRules":        true,
+	"LoadBalancerRules.ListLoadBalancerRules":          true,
+	"LoadBalancerRules.UpdateLoadBalancerRules":        true,
+	"LoadBalancerRules.DeleteLoadBalancerRules":        true,
+	"LoadBalancerRules.AssignVmsLoadBalancerRules":     true,
+	"LoadBalancerRules.RemoveVmsLoadBalancerRules":     true,
+	"LoadBalancerRules.ListInstancesLoadBalancerRules": true,
 }
 
 // notExposed: SDK methods deliberately not surfaced, with the reason.
@@ -127,4 +151,13 @@ var notExposed = map[string]string{
 	"Images.GetImages":          "get-by-id; by-label lookup used instead",
 	"VMPackages.ListVMPackages": "data-source list surface (by-label lookup used)",
 	"VMPackages.GetVMPackages":  "get-by-id; by-label lookup used instead",
+
+	"EgressRules.UpdateEgressRules":        "platform update is delete+recreate under a NEW id — breaks Terraform's stable-id model; resource is replace-on-change",
+	"EgressRules.ListEgressRules":          "data-source surface (get-by-id used for Read)",
+	"EgressRules.ListByNetworkEgressRules": "data-source surface",
+
+	"NetworkACLs.ListListsNetworkACLs":      "data-source surface (get-by-id used for Read)",
+	"NetworkACLs.ListListsByVpcNetworkACLs": "data-source surface",
+	"NetworkACLs.ListRulesNetworkACLs":      "data-source surface (get-by-id used for Read)",
+	"NetworkACLs.ReplaceListNetworkACLs":    "tier↔ACL attachment is modeled on vpc_tier.acl_id; in-place re-assignment is a vpc_tier roadmap item",
 }

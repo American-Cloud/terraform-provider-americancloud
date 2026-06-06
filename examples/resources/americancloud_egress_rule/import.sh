@@ -1,0 +1,1 @@
+terraform import americancloud_egress_rule.https_out "b42e1d21-f3c5-4e1f-99ea-9cdf8c26cbf3"
