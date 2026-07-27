@@ -85,7 +85,7 @@ resource "americancloud_vm" "reachable" {
 ### Optional
 
 - `keypairs` (Set of String) SSH key names to install (see `americancloud_ssh_key`). Keys are installed for the image's access user — `root` on the stock Ubuntu images. Forces replacement. Not recoverable by `terraform import`.
-- `network` (String) Network UUID to attach the VM to. Omit to have the platform auto-create an isolated network (required for `network_access`; the auto-created network is not managed by Terraform and survives the VM). Forces replacement.
+- `network` (String) Network UUID to attach the VM to. Omit to have the platform auto-create an isolated network (required for `network_access`; the auto-created network is not managed by Terraform). The auto-created network is tied to this VM: when the VM is destroyed and no other VMs remain on it, the platform deletes the network and releases its public IPs. To keep a network across a VM's lifetime, declare an `americancloud_isolated_network` resource and reference it here — a network you supply is never auto-deleted. Forces replacement.
 - `network_access` (Attributes) Create-time network access for a platform-created network: opens the requested inbound ports (port forwarding + firewall rules on the network's public IP) and optionally allows all egress. Only honored when `network` is omitted — conflicts with it. Forces replacement. Not recoverable by `terraform import`. (see [below for nested schema](#nestedatt--network_access))
 - `tags` (Set of String) Tags to assign to the VM. Forces replacement. Not recoverable by `terraform import`.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))

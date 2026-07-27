@@ -23,6 +23,12 @@ resource "americancloud_vm" "web" {
 # Forward public port 2222 to the VM's SSH port. A matching firewall rule is
 # required for the traffic to be allowed — forwarding routes it, the firewall
 # admits it.
+#
+# If the public IP is reserved in a VPC rather than an isolated network, add
+# tier_id when the VM has interfaces in more than one tier of that VPC — the
+# platform otherwise determines the tier from the VM:
+#
+#   tier_id = americancloud_vpc_tier.app.id
 resource "americancloud_port_forwarding_rule" "ssh" {
   ip_id        = americancloud_public_ip.app.id
   vm_id        = americancloud_vm.web.id

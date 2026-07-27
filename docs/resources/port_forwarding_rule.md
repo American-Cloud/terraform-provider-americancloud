@@ -38,6 +38,12 @@ resource "americancloud_vm" "web" {
 # Forward public port 2222 to the VM's SSH port. A matching firewall rule is
 # required for the traffic to be allowed — forwarding routes it, the firewall
 # admits it.
+#
+# If the public IP is reserved in a VPC rather than an isolated network, add
+# tier_id when the VM has interfaces in more than one tier of that VPC — the
+# platform otherwise determines the tier from the VM:
+#
+#   tier_id = americancloud_vpc_tier.app.id
 resource "americancloud_port_forwarding_rule" "ssh" {
   ip_id        = americancloud_public_ip.app.id
   vm_id        = americancloud_vm.web.id
@@ -70,6 +76,7 @@ resource "americancloud_firewall_rule" "ssh" {
 ### Optional
 
 - `open_firewall` (Boolean) When `true`, also creates a matching firewall rule on the public IP. Create-only: the platform does not echo this back, so it is not recoverable by `terraform import` (an import under a config that sets it plans a replacement), and the auto-created firewall rule is not managed by this resource.
+- `tier_id` (String) For a public IP reserved in a VPC, the VPC tier (from `americancloud_vpc_tier`) the rule applies to. A VPC IP is not bound to any single tier, so the rule must target one — set this only when the VM has interfaces in more than one tier of the VPC; otherwise the platform determines the tier from the VM. Ignored for IPs reserved in an isolated network. Create-only: the platform does not echo this back, so it is not recoverable by `terraform import` (an import under a config that sets it plans a replacement).
 
 ### Read-Only
 
@@ -86,6 +93,6 @@ The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/c
 
 ```shell
 # Port forwarding rules have no GET endpoint; import by composite id ipId/ruleId.
-# open_firewall is create-only and not recoverable on import.
+# open_firewall and tier_id are create-only and not recoverable on import.
 terraform import americancloud_port_forwarding_rule.ssh "feaf8347-9c08-491b-b7cd-0f41fc98530b/b42e1d21-f3c5-4e1f-99ea-9cdf8c26cbf3"
 ```

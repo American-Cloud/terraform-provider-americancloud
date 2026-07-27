@@ -6,6 +6,28 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-27
+
+### Added
+
+- **`port_forwarding_rule.tier_id`** — the VPC tier a rule applies to, for a
+  public IP reserved in a VPC. Set it only when the target VM has interfaces in
+  more than one tier of that VPC; otherwise the platform determines the tier
+  from the VM. Ignored for IPs in an isolated network. Create-only: the platform
+  does not echo it back, so it forces replacement and is not recoverable by
+  `terraform import`.
+
+### Changed
+
+- SDK pin bumped to `americancloud-sdk-go` 1.3.3 (API platform 1.3.3).
+- **`vm.network` behavior note.** When `network` is omitted, the platform
+  auto-creates an isolated network for the VM. That auto-created network is now
+  tied to the VM's lifecycle: destroying the VM (when no other VMs remain on the
+  network) deletes the network and releases its public IPs, instead of leaving
+  it behind. No schema change — declare an `isolated_network` resource and
+  reference it from `vm.network` to keep a network across a VM's lifetime (a
+  network you supply is never auto-deleted).
+
 ## [0.2.0] - 2026-06-05
 
 ### Added

@@ -3,7 +3,7 @@ module github.com/American-Cloud/terraform-provider-americancloud
 go 1.26.4
 
 require (
-	github.com/American-Cloud/americancloud-sdk-go v1.3.1
+	github.com/American-Cloud/americancloud-sdk-go v1.3.3
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0

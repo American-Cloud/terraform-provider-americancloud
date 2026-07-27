@@ -43,6 +43,7 @@ type portForwardingRuleModel struct {
 	PublicPort   types.Int64  `tfsdk:"public_port"`
 	Protocol     types.String `tfsdk:"protocol"`
 	OpenFirewall types.Bool   `tfsdk:"open_firewall"`
+	TierID       types.String `tfsdk:"tier_id"`
 	VMName       types.String `tfsdk:"vm_name"`
 	IPAddress    types.String `tfsdk:"ip_address"`
 	State        types.String `tfsdk:"state"`
@@ -93,6 +94,15 @@ func (r *portForwardingRuleResource) Schema(_ context.Context, _ resource.Schema
 					"is not managed by this resource.",
 				PlanModifiers: []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
+			"tier_id": schema.StringAttribute{
+				Optional: true, MarkdownDescription: "For a public IP reserved in a VPC, the VPC tier " +
+					"(from `americancloud_vpc_tier`) the rule applies to. A VPC IP is not bound to any single tier, " +
+					"so the rule must target one — set this only when the VM has interfaces in more than one tier of " +
+					"the VPC; otherwise the platform determines the tier from the VM. Ignored for IPs reserved in an " +
+					"isolated network. Create-only: the platform does not echo this back, so it is not recoverable by " +
+					"`terraform import` (an import under a config that sets it plans a replacement).",
+				PlanModifiers: requiresReplace,
+			},
 			"vm_name":    schema.StringAttribute{Computed: true, MarkdownDescription: "Name of the target VM.", PlanModifiers: useState},
 			"ip_address": schema.StringAttribute{Computed: true, MarkdownDescription: "The public IP address the rule applies to.", PlanModifiers: useState},
 			"state":      schema.StringAttribute{Computed: true, MarkdownDescription: "Current rule state.", PlanModifiers: useState},
@@ -114,6 +124,11 @@ func (r *portForwardingRuleResource) Create(ctx context.Context, req resource.Cr
 		s := strconv.FormatBool(plan.OpenFirewall.ValueBool())
 		openFirewall = &s
 	}
+	var tierID *string
+	if !plan.TierID.IsNull() && !plan.TierID.IsUnknown() {
+		s := plan.TierID.ValueString()
+		tierID = &s
+	}
 	rule, err := r.client.PortForwarding.CreatePortForwarding(ctx, &acsdk.CreatePortForwardingRuleDto{
 		IpId:         plan.IpID.ValueString(),
 		VmId:         plan.VmID.ValueString(),
@@ -121,6 +136,7 @@ func (r *portForwardingRuleResource) Create(ctx context.Context, req resource.Cr
 		PublicPort:   strconv.FormatInt(plan.PublicPort.ValueInt64(), 10),
 		Protocol:     acsdk.CreatePortForwardingRuleDtoProtocol(plan.Protocol.ValueString()),
 		OpenFirewall: openFirewall,
+		TierID:       tierID,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating port forwarding rule", err.Error())
@@ -174,7 +190,8 @@ func (r *portForwardingRuleResource) Read(ctx context.Context, req resource.Read
 	// hydrates the import case).
 	state.PrivatePort = types.Int64Value(int64(rule.PrivatePort))
 	state.PublicPort = types.Int64Value(int64(rule.PublicPort))
-	// open_firewall is create-only and never echoed — leave state untouched.
+	// open_firewall and tier_id are create-only and never echoed — leave state
+	// untouched (both are ForceNew, so a drifting value can't be reconciled anyway).
 	// Computed fields always refresh.
 	state.VMName = types.StringValue(rule.VMName)
 	state.IPAddress = types.StringValue(rule.IPAddress)

@@ -118,7 +118,10 @@ func (r *vmResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp 
 			"network": schema.StringAttribute{
 				Optional: true, Computed: true,
 				MarkdownDescription: "Network UUID to attach the VM to. Omit to have the platform auto-create an isolated network " +
-					"(required for `network_access`; the auto-created network is not managed by Terraform and survives the VM). Forces replacement.",
+					"(required for `network_access`; the auto-created network is not managed by Terraform). The auto-created " +
+					"network is tied to this VM: when the VM is destroyed and no other VMs remain on it, the platform deletes " +
+					"the network and releases its public IPs. To keep a network across a VM's lifetime, declare an " +
+					"`americancloud_isolated_network` resource and reference it here — a network you supply is never auto-deleted. Forces replacement.",
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace(), stringplanmodifier.UseStateForUnknown()},
 			},
 			"subscription_period": schema.StringAttribute{
