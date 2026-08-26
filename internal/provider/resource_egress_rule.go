@@ -45,6 +45,7 @@ type egressRuleModel struct {
 	SourceCidrList types.String `tfsdk:"source_cidr_list"`
 	DestCidrList   types.String `tfsdk:"dest_cidr_list"`
 	State          types.String `tfsdk:"state"`
+	Action         types.String `tfsdk:"action"`
 }
 
 func (r *egressRuleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -93,6 +94,11 @@ func (r *egressRuleResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace(), stringplanmodifier.UseStateForUnknown()},
 			},
 			"state": schema.StringAttribute{Computed: true, MarkdownDescription: "Current rule state.", PlanModifiers: useState},
+			"action": schema.StringAttribute{
+				Computed: true, PlanModifiers: useState,
+				MarkdownDescription: "Whether this rule permits or blocks the traffic it matches: `allow` or `deny`. " +
+					"The rule's network decides this through its `default_egress_policy`, not the rule itself.",
+			},
 		},
 	}
 }
@@ -129,6 +135,7 @@ func (r *egressRuleResource) Create(ctx context.Context, req resource.CreateRequ
 		plan.DestCidrList = stringPtrToString(rule.DestCidrList)
 	}
 	plan.State = types.StringValue(rule.State)
+	plan.Action = enumPtrToString(rule.Action)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -163,6 +170,7 @@ func (r *egressRuleResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 	// Computed fields always refresh.
 	state.State = types.StringValue(rule.State)
+	state.Action = enumPtrToString(rule.Action)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

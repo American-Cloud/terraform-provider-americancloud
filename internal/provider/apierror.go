@@ -2,6 +2,8 @@ package provider
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	acsdk "github.com/American-Cloud/americancloud-sdk-go"
 	"github.com/American-Cloud/americancloud-sdk-go/core"
@@ -25,4 +27,40 @@ func apiStatusCode(err error) int {
 		return ae.StatusCode
 	}
 	return 0
+}
+
+// deleteBlockedBySnapshots reports whether err is the 409 that refuses a delete
+// while the disk still has snapshots, and returns a message naming them. The
+// API sends the list in the error body, so the user does not have to look the
+// snapshots up. It returns false for every other error.
+func deleteBlockedBySnapshots(err error) (string, bool) {
+	var ce *acsdk.ConflictError
+	if !errors.As(err, &ce) || ce.Body == nil || ce.Body.Code == nil {
+		return "", false
+	}
+	if *ce.Body.Code != "volume_has_snapshots" {
+		return "", false
+	}
+	named := make([]string, 0, len(ce.Body.Snapshots))
+	for _, s := range ce.Body.Snapshots {
+		if s == nil {
+			continue
+		}
+		// A snapshot the platform left unnamed is still worth reporting by id.
+		switch name, id := strings.TrimSpace(s.Name), strings.TrimSpace(s.ID); {
+		case name != "" && id != "":
+			named = append(named, fmt.Sprintf("%s (%s)", name, id))
+		case id != "":
+			named = append(named, id)
+		case name != "":
+			named = append(named, name)
+		}
+	}
+	if len(named) == 0 {
+		return "", false
+	}
+	return fmt.Sprintf(
+		"The disk still has snapshots, so it cannot be deleted. Delete these first, then retry: %s.",
+		strings.Join(named, ", "),
+	), true
 }

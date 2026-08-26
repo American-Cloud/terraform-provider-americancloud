@@ -37,6 +37,8 @@ type isolatedNetworkModel struct {
 	Cidr        types.String `tfsdk:"cidr"`
 	Status      types.String `tfsdk:"status"`
 	CreatedAt   types.String `tfsdk:"created_at"`
+
+	DefaultEgressPolicy types.String `tfsdk:"default_egress_policy"`
 }
 
 func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -72,6 +74,13 @@ func (r *isolatedNetworkResource) Schema(_ context.Context, _ resource.SchemaReq
 			"cidr":       schema.StringAttribute{Computed: true, MarkdownDescription: "Network CIDR.", PlanModifiers: useState},
 			"status":     schema.StringAttribute{Computed: true, MarkdownDescription: "Network status.", PlanModifiers: useState},
 			"created_at": schema.StringAttribute{Computed: true, MarkdownDescription: "Creation time (RFC 3339).", PlanModifiers: useState},
+			"default_egress_policy": schema.StringAttribute{
+				Computed: true, PlanModifiers: useState,
+				MarkdownDescription: "How outbound traffic is treated when the network has no egress rules: " +
+					"`allow` permits all outbound traffic and each egress rule blocks what it matches; " +
+					"`deny` blocks all outbound traffic and each egress rule permits what it matches. " +
+					"The platform fixes this when the network is created and it cannot be changed afterwards.",
+			},
 		},
 	}
 }
@@ -95,7 +104,7 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	state := isolatedNetworkState(net.ID, net.Name, net.Description, net.Region, net.Cidr, net.Gateway, string(net.Status), net.CreatedAt, plan.Netmask)
+	state := isolatedNetworkState(net.ID, net.Name, net.Description, net.Region, net.Cidr, net.Gateway, string(net.Status), net.CreatedAt, plan.Netmask, enumPtrToString(net.DefaultEgressPolicy))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -117,7 +126,7 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// netmask is an input-only field (not returned) — preserve it from state.
-	model := isolatedNetworkState(net.ID, net.Name, net.Description, net.Region, net.Cidr, net.Gateway, string(net.Status), net.CreatedAt, state.Netmask)
+	model := isolatedNetworkState(net.ID, net.Name, net.Description, net.Region, net.Cidr, net.Gateway, string(net.Status), net.CreatedAt, state.Netmask, enumPtrToString(net.DefaultEgressPolicy))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -161,7 +170,7 @@ func (r *isolatedNetworkResource) ImportState(ctx context.Context, req resource.
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func isolatedNetworkState(id, name, description, region, cidr, gateway, status string, createdAt *time.Time, netmask types.String) isolatedNetworkModel {
+func isolatedNetworkState(id, name, description, region, cidr, gateway, status string, createdAt *time.Time, netmask, defaultEgressPolicy types.String) isolatedNetworkModel {
 	return isolatedNetworkModel{
 		ID:          types.StringValue(id),
 		Name:        types.StringValue(name),
@@ -172,5 +181,7 @@ func isolatedNetworkState(id, name, description, region, cidr, gateway, status s
 		Cidr:        types.StringValue(cidr),
 		Status:      types.StringValue(status),
 		CreatedAt:   timePtrToString(createdAt),
+
+		DefaultEgressPolicy: defaultEgressPolicy,
 	}
 }

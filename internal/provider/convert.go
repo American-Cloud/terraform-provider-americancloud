@@ -48,6 +48,16 @@ func stringPtrToString(p *string) types.String {
 	return types.StringValue(*p)
 }
 
+// enumPtrToString is stringPtrToString for the SDK's optional string-enum
+// fields, which each have their own named type. A nil pointer means the API
+// omitted the field, so the attribute is null rather than an empty string.
+func enumPtrToString[T ~string](p *T) types.String {
+	if p == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(string(*p))
+}
+
 // stringToPtr converts an optional framework string to *string (nil when null/unknown).
 func stringToPtr(v types.String) *string {
 	if v.IsNull() || v.IsUnknown() {

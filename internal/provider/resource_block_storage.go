@@ -170,6 +170,10 @@ func (r *blockStorageResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 	if _, err := r.client.BlockStorage.DeleteBlockStorage(ctx, &acsdk.DeleteBlockStorageRequest{ID: state.ID.ValueString()}); err != nil {
+		if detail, blocked := deleteBlockedBySnapshots(err); blocked {
+			resp.Diagnostics.AddError("Error deleting block storage volume", detail)
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting block storage volume", err.Error())
 	}
 }

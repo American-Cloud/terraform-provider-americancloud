@@ -6,6 +6,31 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-26
+
+### Added
+
+- **`isolated_network.default_egress_policy`** — how outbound traffic is treated
+  when the network has no egress rules. `allow` permits all outbound traffic and
+  each egress rule blocks what it matches; `deny` blocks all outbound traffic and
+  each egress rule permits what it matches. The platform fixes it when the
+  network is created and it cannot be changed afterwards, so the attribute is
+  read-only.
+- **`egress_rule.action`** — whether the rule permits or blocks the traffic it
+  matches, `allow` or `deny`. The rule's network decides this through its
+  `default_egress_policy`, not the rule itself. Read-only.
+- Deleting a VM or a block storage volume whose disk still has snapshots now
+  reports which snapshots block it, by name and id, instead of the raw API
+  error. Delete those snapshots, then retry.
+
+### Changed
+
+- SDK pin bumped to `americancloud-sdk-go` v1.4.0 (API 1.4.0).
+- `vm.subscription_period` reads a now-optional API field. The platform omits it
+  for a few moments after a VM is created, while the billing term is recorded.
+  Your configuration is unaffected: the attribute keeps the value you set, and a
+  refresh in that window no longer fails.
+
 ## [0.3.0] - 2026-07-27
 
 ### Added

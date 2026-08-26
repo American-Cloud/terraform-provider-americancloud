@@ -309,7 +309,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	state.Region = keepStr(state.Region, vm.Region)
 	state.Image = keepStr(state.Image, vm.Image)
 	state.Network = keepStr(state.Network, derefString(vm.NetworkID))
-	state.SubscriptionPeriod = keepStr(state.SubscriptionPeriod, vm.SubscriptionPeriod)
+	state.SubscriptionPeriod = keepStr(state.SubscriptionPeriod, derefString(vm.SubscriptionPeriod))
 	// keypairs / user_data / tags / network_access: deliberately untouched — see
 	// the constructor comment (not echoed / platform may inject tags; hydrating
 	// an optional ForceNew attribute would risk a destructive replacement).
@@ -381,6 +381,10 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		return
 	}
 	if err := r.client.Vms.DeleteVms(ctx, &acsdk.DeleteVmsRequest{ID: state.ID.ValueString()}); err != nil {
+		if detail, blocked := deleteBlockedBySnapshots(err); blocked {
+			resp.Diagnostics.AddError("Error deleting VM", detail)
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting VM", err.Error())
 		return
 	}
