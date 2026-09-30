@@ -131,7 +131,7 @@ func (r *vmResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp 
 			},
 			"keypairs": schema.SetAttribute{
 				ElementType: types.StringType, Optional: true,
-				MarkdownDescription: "SSH key names to install (see `americancloud_ssh_key`). Keys are installed for the image's access user — `root` on the stock Ubuntu images. Forces replacement. Not recoverable by `terraform import`.",
+				MarkdownDescription: "SSH key names to install (see `americancloud_ssh_key`). Keys are installed for the image's default login user, `cloud` on the Linux images — connect with `ssh cloud@<public-ip>`. Forces replacement. Not recoverable by `terraform import`.",
 				PlanModifiers:       []planmodifier.Set{setplanmodifier.RequiresReplace()},
 			},
 			"user_data": schema.StringAttribute{

@@ -6,6 +6,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- **`vm.keypairs`** — the description now names `cloud` as the default login
+  user on the Linux images (`ssh cloud@<public-ip>`). It said `root` before.
+  Nothing in the provider behavior changes.
+
 ## [0.4.0] - 2026-08-26
 
 ### Added
