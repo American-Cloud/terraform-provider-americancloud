@@ -6,6 +6,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-30
+
 ### Changed
 
 - **`vm.keypairs`** — the description now names `cloud` as the default login
