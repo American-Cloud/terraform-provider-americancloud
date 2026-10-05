@@ -64,3 +64,13 @@ func deleteBlockedBySnapshots(err error) (string, bool) {
 		strings.Join(named, ", "),
 	), true
 }
+
+// conflictCode returns the machine-readable code of a 409 from the SDK, or "" for any other
+// error. Match on the code, never on the message: the message is customer copy.
+func conflictCode(err error) string {
+	var ce *acsdk.ConflictError
+	if !errors.As(err, &ce) || ce.Body == nil || ce.Body.Code == nil {
+		return ""
+	}
+	return *ce.Body.Code
+}

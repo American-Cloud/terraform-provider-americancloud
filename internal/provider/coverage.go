@@ -67,9 +67,15 @@ var mapped = map[string]bool{
 	"ObjectStorage.GetKeysObjectStorage":      true,
 	"ObjectStorage.SetUserQuotaObjectStorage": true,
 	"ObjectStorage.DeleteUnitObjectStorage":   true,
-	"Regions.GetByLabelRegions":               true,
-	"Images.GetByLabelImages":                 true,
-	"VMPackages.GetByLabelVMPackages":         true,
+
+	// americancloud_object_storage_access_key
+	"ObjectStorage.CreateAccessKeyObjectStorage": true,
+	"ObjectStorage.ListAccessKeysObjectStorage":  true,
+	"ObjectStorage.DeleteAccessKeyObjectStorage": true,
+
+	"Regions.GetByLabelRegions":       true,
+	"Images.GetByLabelImages":         true,
+	"VMPackages.GetByLabelVMPackages": true,
 
 	"PortForwarding.CreatePortForwarding": true,
 	"PortForwarding.ListPortForwarding":   true,

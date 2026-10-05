@@ -38,5 +38,6 @@ resource "americancloud_isolated_network" "example" {
 
 - `cidr` (String) Network CIDR.
 - `created_at` (String) Creation time (RFC 3339).
+- `default_egress_policy` (String) How outbound traffic is treated when the network has no egress rules: `allow` permits all outbound traffic and each egress rule blocks what it matches; `deny` blocks all outbound traffic and each egress rule permits what it matches. The platform fixes this when the network is created and it cannot be changed afterwards.
 - `id` (String) Network identifier (UUID).
 - `status` (String) Network status.

@@ -48,6 +48,7 @@ resource "americancloud_egress_rule" "https_out" {
 
 ### Read-Only
 
+- `action` (String) Whether this rule permits or blocks the traffic it matches: `allow` or `deny`. The rule's network decides this through its `default_egress_policy`, not the rule itself.
 - `id` (String) Rule identifier (UUID).
 - `state` (String) Current rule state.
 

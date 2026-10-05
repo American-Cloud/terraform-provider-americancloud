@@ -3,12 +3,12 @@
 page_title: "americancloud_object_storage_unit Resource - americancloud"
 subcategory: ""
 description: |-
-  An object storage unit — an S3-compatible storage account that holds buckets. Use its access_key/secret_key with any S3 client against the endpoint https://a2-west.americancloud.com. max_size_gb is updatable in place; changing the name replaces the unit.
+  An object storage unit — an S3-compatible storage account that holds buckets. Use its access_key/secret_key with any S3 client against the endpoint https://a2-west.americancloud.com. They are the unit's original key; add more keys with americancloud_object_storage_access_key. max_size_gb is updatable in place; changing the name replaces the unit.
 ---
 
 # americancloud_object_storage_unit (Resource)
 
-An object storage unit — an S3-compatible storage account that holds buckets. Use its `access_key`/`secret_key` with any S3 client against the endpoint `https://a2-west.americancloud.com`. `max_size_gb` is updatable in place; changing the name replaces the unit.
+An object storage unit — an S3-compatible storage account that holds buckets. Use its `access_key`/`secret_key` with any S3 client against the endpoint `https://a2-west.americancloud.com`. They are the unit's original key; add more keys with `americancloud_object_storage_access_key`. `max_size_gb` is updatable in place; changing the name replaces the unit.
 
 ## Example Usage
 

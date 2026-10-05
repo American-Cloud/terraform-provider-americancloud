@@ -129,6 +129,7 @@ func (p *americancloudProvider) Resources(_ context.Context) []func() resource.R
 		NewVMResource,
 		NewKubernetesClusterResource,
 		NewObjectStorageUnitResource,
+		NewObjectStorageAccessKeyResource,
 		NewVPCTierResource,
 	}
 }

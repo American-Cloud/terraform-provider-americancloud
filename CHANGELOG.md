@@ -6,6 +6,38 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-05
+
+### Added
+
+- New resource `americancloud_object_storage_access_key`: an extra S3 access key
+  for an object storage unit. Every key of a unit works at the same time, so each
+  application can have its own key, and you can rotate one key without touching
+  the others. A unit holds up to 10 keys. Changing `storage_unit_id` or `label`
+  replaces the key. `secret_key` is sensitive. Import with
+  `<storage_unit_id>/<access_key>`. The unit's original key stays the
+  `access_key`/`secret_key` of `americancloud_object_storage_unit`.
+- When the API answers that another key request for the same unit is running, or
+  that you sent too many key requests, the provider waits and retries until the
+  create or delete timeout. Several keys on one unit in one apply therefore work
+  with the default parallelism.
+
+### Changed
+
+- Built against `americancloud-sdk-go` 1.5.0 (API platform 1.5.0).
+- The `americancloud_object_storage_unit` documentation says that its
+  `access_key`/`secret_key` are the unit's original key.
+- The `egress_rule` and `isolated_network` documentation now lists the
+  `action` and `default_egress_policy` attributes.
+
+### Security
+
+- The provider now builds with Go 1.26.8. This release includes the Go fixes for
+  `crypto/tls`, `net/http`, `net/url` and `encoding/asn1`.
+- Updated `google.golang.org/grpc` to v1.83.2, `golang.org/x/net` to v0.59.0 and
+  `golang.org/x/text` to v0.42.0. These versions fix the known advisories in the
+  plugin server and in host-name handling. The provider behavior does not change.
+
 ## [0.4.1] - 2026-09-30
 
 ### Changed

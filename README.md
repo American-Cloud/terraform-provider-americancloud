@@ -49,7 +49,8 @@ Create API keys at **[console.americancloud.com](https://console.americancloud.c
 `americancloud_public_ip` · `americancloud_firewall_rule` · `americancloud_egress_rule` ·
 `americancloud_network_acl` · `americancloud_network_acl_rule` ·
 `americancloud_port_forwarding_rule` · `americancloud_load_balancer_rule` ·
-`americancloud_object_storage_unit` · `americancloud_dns_zone` · `americancloud_dns_record`.
+`americancloud_object_storage_unit` · `americancloud_object_storage_access_key` ·
+`americancloud_dns_zone` · `americancloud_dns_record`.
 
 **Data sources:** `americancloud_region` · `americancloud_image` · `americancloud_vm_package`.
 

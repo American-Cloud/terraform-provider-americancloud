@@ -29,7 +29,8 @@ var (
 // storage-unit id. name forces replacement; max_size_gb is declarable quota,
 // applied via the SetUserQuota op (set / update in place / RemoveLimit on unset);
 // access_key/secret_key are computed sensitive outputs fetched after create and
-// backfilled on Read (the kubeconfig pattern).
+// backfilled on Read (the kubeconfig pattern). GetKeys returns the unit's oldest key,
+// which is its original key; americancloud_object_storage_access_key manages the others.
 // NOT_EXPOSED: objectStorage.CreateBucketObjectStorage / DeleteBucketObjectStorage /
 // ListBucketsObjectStorage (buckets land as a follow-up sub-resource);
 // objectStorage.GetCostEstimateObjectStorage (cost preview).
@@ -56,7 +57,8 @@ func (r *objectStorageUnitResource) Schema(_ context.Context, _ resource.SchemaR
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "An object storage unit — an S3-compatible storage account that holds buckets. " +
 			"Use its `access_key`/`secret_key` with any S3 client against the endpoint " +
-			"`https://a2-west.americancloud.com`. " +
+			"`https://a2-west.americancloud.com`. They are the unit's original key; add more keys " +
+			"with `americancloud_object_storage_access_key`. " +
 			"`max_size_gb` is updatable in place; changing the name replaces the unit.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{Computed: true, MarkdownDescription: "Storage unit identifier.", PlanModifiers: useState},
