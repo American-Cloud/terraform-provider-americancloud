@@ -6,6 +6,30 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-10
+
+### Changed
+
+- Built against `americancloud-sdk-go` 1.6.0 (API platform 1.6.0).
+- The API now protects the rules that a managed Kubernetes cluster depends on.
+  A plan that removes or changes the cluster's port 6443 load balancer rule, its
+  port 2222+ SSH forwarding rules or the firewall rules that open them, releases
+  the cluster's public IP, or changes the source NAT address of its network is
+  refused by the API with a message that names the cluster. Scaling or upgrading
+  a cluster whose port 6443 rule is already gone is refused the same way, with
+  nothing changed.
+- `americancloud_kubernetes_cluster` reads `kubeconfig` with a read-write API
+  key only. The API now requires manage access for it. With a read-only key the
+  apply still succeeds; the provider warns that the kubeconfig needs a read-write
+  key and leaves the attribute empty.
+- `americancloud_object_storage_unit` `name` accepts hyphens and underscores:
+  letters, digits, hyphens and underscores, up to 100 characters, starting and
+  ending with a letter or digit. The names `anonymous` and `RGW` followed by 17
+  digits are reserved. The documentation said alphanumeric only.
+- A create of `americancloud_vm` or `americancloud_kubernetes_cluster` reads
+  its record at once. The API returns the new resource right after create, so
+  the first poll no longer waits through a not-found window.
+
 ## [0.5.0] - 2026-10-05
 
 ### Added

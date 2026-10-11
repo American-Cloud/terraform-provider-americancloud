@@ -64,7 +64,7 @@ func (r *objectStorageUnitResource) Schema(_ context.Context, _ resource.SchemaR
 			"id": schema.StringAttribute{Computed: true, MarkdownDescription: "Storage unit identifier.", PlanModifiers: useState},
 			"name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Storage unit name (alphanumeric). Changing it forces a new unit.",
+				MarkdownDescription: "Storage unit name: letters, digits, hyphens and underscores, up to 100 characters, starting and ending with a letter or digit. Changing it forces a new unit.",
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"max_size_gb": schema.Int64Attribute{

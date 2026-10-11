@@ -1,5 +1,5 @@
-github.com/American-Cloud/americancloud-sdk-go v1.5.0 h1:WPpksaO1RcA4ZxnFuzIXG2tzgDU/X4efb6TDfBl0VpY=
-github.com/American-Cloud/americancloud-sdk-go v1.5.0/go.mod h1:5Wa15r09rxN8qSYDLZCfNpzQRCAhKTSOwunJ7mvDsJY=
+github.com/American-Cloud/americancloud-sdk-go v1.6.0 h1:LLDSSL9Kb+0+S25se5Rd1ZuLMkQMbDZo/RarGD1X010=
+github.com/American-Cloud/americancloud-sdk-go v1.6.0/go.mod h1:5Wa15r09rxN8qSYDLZCfNpzQRCAhKTSOwunJ7mvDsJY=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

@@ -30,7 +30,7 @@ resource "americancloud_object_storage_unit" "media" {
 
 ### Required
 
-- `name` (String) Storage unit name (alphanumeric). Changing it forces a new unit.
+- `name` (String) Storage unit name: letters, digits, hyphens and underscores, up to 100 characters, starting and ending with a letter or digit. Changing it forces a new unit.
 
 ### Optional
 

@@ -159,12 +159,13 @@ func (r *kubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 	if cfg, cerr := r.client.Kubernetes.GetClusterConfigKubernetes(ctx, &acsdk.GetClusterConfigKubernetesRequest{ID: cluster.ID}); cerr == nil {
 		plan.Kubeconfig = types.StringValue(cfg.Configdata)
 	} else {
-		// The cluster is running but its config isn't retrievable yet. Don't fail
-		// the apply — surface a warning and let the next Read backfill it.
+		// The cluster is running but its config isn't retrievable yet, or the key
+		// cannot read it. Don't fail the apply — surface a warning and let the next
+		// Read backfill it.
 		resp.Diagnostics.AddWarning(
-			"Kubeconfig not yet available",
+			"Kubeconfig not available",
 			"The cluster reached a running state but its kubeconfig could not be fetched: "+cerr.Error()+
-				". Run `terraform refresh` (or the next plan/apply) once the cluster finishes initializing to populate it.",
+				". The kubeconfig needs a read-write API key. With one, run `terraform refresh` (or the next plan/apply) once the cluster finishes initializing to populate it.",
 		)
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
