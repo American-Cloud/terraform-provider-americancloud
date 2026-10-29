@@ -3,12 +3,12 @@
 page_title: "americancloud_kubernetes_cluster Resource - americancloud"
 subcategory: ""
 description: |-
-  A managed Kubernetes cluster. Provisions asynchronously — apply blocks until the cluster is running. worker_nodes scales and version upgrades in place; control_nodes, package, region, and name are immutable (changing them replaces the cluster).
+  A managed Kubernetes cluster. Provisions asynchronously — apply blocks until the cluster is running. worker_nodes scales and version upgrades in place; control_nodes, the packages, region, and name are immutable (changing them replaces the cluster). Set package for one package on every node, or control_package and worker_package for a different package on each node type.
 ---
 
 # americancloud_kubernetes_cluster (Resource)
 
-A managed Kubernetes cluster. Provisions asynchronously — `apply` blocks until the cluster is running. `worker_nodes` scales and `version` upgrades in place; control_nodes, package, region, and name are immutable (changing them replaces the cluster).
+A managed Kubernetes cluster. Provisions asynchronously — `apply` blocks until the cluster is running. `worker_nodes` scales and `version` upgrades in place; control_nodes, the packages, region, and name are immutable (changing them replaces the cluster). Set `package` for one package on every node, or `control_package` and `worker_package` for a different package on each node type.
 
 ## Example Usage
 
@@ -17,6 +17,9 @@ resource "americancloud_kubernetes_cluster" "example" {
   name          = "prod-cluster"
   region        = "us-west-0"
   package       = "basic"  # from list_kubernetes_packages
+  # For a different package on each node type, leave out package and set:
+  # control_package = "scale"
+  # worker_package  = "basic"
   version       = "1.33.1" # from list_kubernetes_versions
   control_nodes = 1
   worker_nodes  = 2
@@ -35,17 +38,19 @@ output "kubeconfig" {
 
 - `control_nodes` (Number) Number of control-plane nodes. Forces replacement.
 - `name` (String) Cluster name. Forces replacement.
-- `package` (String) Kubernetes node package label (from `list_kubernetes_packages`). Forces replacement.
 - `region` (String) Region label, e.g. `us-west-0`. Forces replacement.
 - `version` (String) Kubernetes version (from `list_kubernetes_versions`). Upgraded in place; the API rejects downgrades.
-- `worker_nodes` (Number) Number of worker nodes. Scaled in place.
+- `worker_nodes` (Number) Number of worker nodes, at least 1. Scaled in place.
 
 ### Optional
 
+- `control_package` (String) Package label for the control-plane nodes. Overrides `package`. When unset, it reads the package of the control-plane nodes, or stays empty when the API does not know it. Forces replacement.
 - `description` (String) Optional description. Forces replacement.
 - `keypair` (String) SSH key pair name to install on nodes. Forces replacement.
 - `network_id` (String) Existing network UUID to place the cluster in. Omit to auto-create. Forces replacement.
+- `package` (String) Package label for every node (from `list_kubernetes_packages`). Required unless you set both `control_package` and `worker_package`; with both set, it reads the worker package. Forces replacement.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `worker_package` (String) Package label for the worker nodes. Overrides `package`. When unset, it reads the package of the worker nodes, or stays empty when the API does not know it. Forces replacement.
 
 ### Read-Only
 

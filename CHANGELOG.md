@@ -6,6 +6,29 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-29
+
+### Added
+
+- `americancloud_kubernetes_cluster`: `control_package` and `worker_package`
+  set a package for the control-plane nodes and for the workers. Set `package`
+  alone for every node, `package` with one override, or both overrides without
+  `package`. The plan refuses any other combination.
+
+### Changed
+
+- Built against `americancloud-sdk-go` 1.7.2 (API platform 1.7.2).
+- `americancloud_kubernetes_cluster` `package` is optional. A cluster made with
+  0.6.0 plans no change: the new attributes read their values from the API and
+  do not force a replacement.
+- `americancloud_kubernetes_cluster` `worker_nodes` must be at least 1. The API
+  refuses 0.
+
+### Security
+
+- Built with Go 1.26.10 and `golang.org/x/net` 0.60.0, which fix advisories in
+  the standard library and in `x/net`.
+
 ## [0.6.0] - 2026-10-10
 
 ### Changed

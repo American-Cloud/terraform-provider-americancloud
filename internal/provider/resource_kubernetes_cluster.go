@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	_ resource.Resource                = (*kubernetesClusterResource)(nil)
-	_ resource.ResourceWithConfigure   = (*kubernetesClusterResource)(nil)
-	_ resource.ResourceWithImportState = (*kubernetesClusterResource)(nil)
+	_ resource.Resource                   = (*kubernetesClusterResource)(nil)
+	_ resource.ResourceWithConfigure      = (*kubernetesClusterResource)(nil)
+	_ resource.ResourceWithImportState    = (*kubernetesClusterResource)(nil)
+	_ resource.ResourceWithValidateConfig = (*kubernetesClusterResource)(nil)
 )
 
 const (
@@ -47,21 +48,23 @@ func NewKubernetesClusterResource() resource.Resource { return &kubernetesCluste
 type kubernetesClusterResource struct{ baseResource }
 
 type kubernetesClusterModel struct {
-	ID           types.String   `tfsdk:"id"`
-	Name         types.String   `tfsdk:"name"`
-	Region       types.String   `tfsdk:"region"`
-	Package      types.String   `tfsdk:"package"`
-	Version      types.String   `tfsdk:"version"`
-	ControlNodes types.Int64    `tfsdk:"control_nodes"`
-	WorkerNodes  types.Int64    `tfsdk:"worker_nodes"`
-	Description  types.String   `tfsdk:"description"`
-	NetworkID    types.String   `tfsdk:"network_id"`
-	Keypair      types.String   `tfsdk:"keypair"`
-	Status       types.String   `tfsdk:"status"`
-	IPAddress    types.String   `tfsdk:"ip_address"`
-	CreatedAt    types.String   `tfsdk:"created_at"`
-	Kubeconfig   types.String   `tfsdk:"kubeconfig"`
-	Timeouts     timeouts.Value `tfsdk:"timeouts"`
+	ID             types.String   `tfsdk:"id"`
+	Name           types.String   `tfsdk:"name"`
+	Region         types.String   `tfsdk:"region"`
+	Package        types.String   `tfsdk:"package"`
+	ControlPackage types.String   `tfsdk:"control_package"`
+	WorkerPackage  types.String   `tfsdk:"worker_package"`
+	Version        types.String   `tfsdk:"version"`
+	ControlNodes   types.Int64    `tfsdk:"control_nodes"`
+	WorkerNodes    types.Int64    `tfsdk:"worker_nodes"`
+	Description    types.String   `tfsdk:"description"`
+	NetworkID      types.String   `tfsdk:"network_id"`
+	Keypair        types.String   `tfsdk:"keypair"`
+	Status         types.String   `tfsdk:"status"`
+	IPAddress      types.String   `tfsdk:"ip_address"`
+	CreatedAt      types.String   `tfsdk:"created_at"`
+	Kubeconfig     types.String   `tfsdk:"kubeconfig"`
+	Timeouts       timeouts.Value `tfsdk:"timeouts"`
 }
 
 func (r *kubernetesClusterResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -72,15 +75,40 @@ func (r *kubernetesClusterResource) Schema(ctx context.Context, _ resource.Schem
 	strReplace := []planmodifier.String{stringplanmodifier.RequiresReplace()}
 	intReplace := []planmodifier.Int64{int64planmodifier.RequiresReplace()}
 	useState := []planmodifier.String{stringplanmodifier.UseStateForUnknown()}
+	// The package attributes are Optional + Computed: the config sets some of
+	// them, and the provider fills the others. keepStateWhenUnset runs before
+	// RequiresReplace, so an unset attribute keeps its state value, also a null
+	// one. With UseStateForUnknown, a null state value would plan as unknown, and
+	// RequiresReplace replaces the cluster on any change from state.
+	pkgModifiers := []planmodifier.String{keepStateWhenUnset(), stringplanmodifier.RequiresReplace()}
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "A managed Kubernetes cluster. Provisions asynchronously — `apply` blocks until " +
 			"the cluster is running. `worker_nodes` scales and `version` upgrades in place; control_nodes, " +
-			"package, region, and name are immutable (changing them replaces the cluster).",
+			"the packages, region, and name are immutable (changing them replaces the cluster). Set `package` " +
+			"for one package on every node, or `control_package` and `worker_package` for a different package " +
+			"on each node type.",
 		Attributes: map[string]schema.Attribute{
-			"id":      schema.StringAttribute{Computed: true, MarkdownDescription: "Cluster identifier (UUID).", PlanModifiers: useState},
-			"name":    schema.StringAttribute{Required: true, MarkdownDescription: "Cluster name. Forces replacement.", PlanModifiers: strReplace},
-			"region":  schema.StringAttribute{Required: true, MarkdownDescription: "Region label, e.g. `us-west-0`. Forces replacement.", PlanModifiers: strReplace},
-			"package": schema.StringAttribute{Required: true, MarkdownDescription: "Kubernetes node package label (from `list_kubernetes_packages`). Forces replacement.", PlanModifiers: strReplace},
+			"id":     schema.StringAttribute{Computed: true, MarkdownDescription: "Cluster identifier (UUID).", PlanModifiers: useState},
+			"name":   schema.StringAttribute{Required: true, MarkdownDescription: "Cluster name. Forces replacement.", PlanModifiers: strReplace},
+			"region": schema.StringAttribute{Required: true, MarkdownDescription: "Region label, e.g. `us-west-0`. Forces replacement.", PlanModifiers: strReplace},
+			"package": schema.StringAttribute{
+				Optional: true, Computed: true,
+				MarkdownDescription: "Package label for every node (from `list_kubernetes_packages`). Required unless you set both " +
+					"`control_package` and `worker_package`; with both set, it reads the worker package. Forces replacement.",
+				PlanModifiers: pkgModifiers,
+			},
+			"control_package": schema.StringAttribute{
+				Optional: true, Computed: true,
+				MarkdownDescription: "Package label for the control-plane nodes. Overrides `package`. When unset, it reads the " +
+					"package of the control-plane nodes, or stays empty when the API does not know it. Forces replacement.",
+				PlanModifiers: pkgModifiers,
+			},
+			"worker_package": schema.StringAttribute{
+				Optional: true, Computed: true,
+				MarkdownDescription: "Package label for the worker nodes. Overrides `package`. When unset, it reads the package " +
+					"of the worker nodes, or stays empty when the API does not know it. Forces replacement.",
+				PlanModifiers: pkgModifiers,
+			},
 			"version": schema.StringAttribute{Required: true, MarkdownDescription: "Kubernetes version (from `list_kubernetes_versions`). Upgraded in place; the API rejects downgrades."},
 			"control_nodes": schema.Int64Attribute{
 				Required: true, MarkdownDescription: "Number of control-plane nodes. Forces replacement.",
@@ -88,8 +116,8 @@ func (r *kubernetesClusterResource) Schema(ctx context.Context, _ resource.Schem
 				PlanModifiers: intReplace,
 			},
 			"worker_nodes": schema.Int64Attribute{
-				Required: true, MarkdownDescription: "Number of worker nodes. Scaled in place.",
-				Validators: []validator.Int64{int64validator.AtLeast(0)},
+				Required: true, MarkdownDescription: "Number of worker nodes, at least 1. Scaled in place.",
+				Validators: []validator.Int64{int64validator.AtLeast(1)},
 			},
 			"description": schema.StringAttribute{Optional: true, MarkdownDescription: "Optional description. Forces replacement.", PlanModifiers: strReplace},
 			"network_id":  schema.StringAttribute{Optional: true, MarkdownDescription: "Existing network UUID to place the cluster in. Omit to auto-create. Forces replacement.", PlanModifiers: strReplace},
@@ -109,6 +137,27 @@ func (r *kubernetesClusterResource) Schema(ctx context.Context, _ resource.Schem
 	}
 }
 
+// ValidateConfig applies the API's package rule at plan time: `package` alone,
+// `package` with one override, or both overrides without `package`. With all
+// three, `package` sets nothing, and the API refuses the request.
+func (r *kubernetesClusterResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var pkg, control, worker types.String
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("package"), &pkg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("control_package"), &control)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("worker_package"), &worker)...)
+	if resp.Diagnostics.HasError() || pkg.IsUnknown() || control.IsUnknown() || worker.IsUnknown() {
+		return
+	}
+	switch {
+	case !pkg.IsNull() && !control.IsNull() && !worker.IsNull():
+		resp.Diagnostics.AddAttributeError(path.Root("package"), "Too many packages",
+			"Set package, or set control_package and worker_package, but not all three. With both overrides, package sets nothing.")
+	case pkg.IsNull() && (control.IsNull() || worker.IsNull()):
+		resp.Diagnostics.AddAttributeError(path.Root("package"), "Missing package",
+			"Set package for every node, or set both control_package and worker_package.")
+	}
+}
+
 func (r *kubernetesClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan kubernetesClusterModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -117,15 +166,17 @@ func (r *kubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	cluster, err := r.client.Kubernetes.CreateClusterKubernetes(ctx, &acsdk.CreateKubernetesClusterRequest{
-		Name:         plan.Name.ValueString(),
-		Package:      plan.Package.ValueString(),
-		Region:       plan.Region.ValueString(),
-		Version:      plan.Version.ValueString(),
-		ControlNodes: float64(plan.ControlNodes.ValueInt64()),
-		WorkerNodes:  float64(plan.WorkerNodes.ValueInt64()),
-		Description:  stringToPtr(plan.Description),
-		NetworkID:    stringToPtr(plan.NetworkID),
-		Keypair:      stringToPtr(plan.Keypair),
+		Name:           plan.Name.ValueString(),
+		Package:        stringToPtr(plan.Package),
+		ControlPackage: stringToPtr(plan.ControlPackage),
+		WorkerPackage:  stringToPtr(plan.WorkerPackage),
+		Region:         plan.Region.ValueString(),
+		Version:        plan.Version.ValueString(),
+		ControlNodes:   float64(plan.ControlNodes.ValueInt64()),
+		WorkerNodes:    float64(plan.WorkerNodes.ValueInt64()),
+		Description:    stringToPtr(plan.Description),
+		NetworkID:      stringToPtr(plan.NetworkID),
+		Keypair:        stringToPtr(plan.Keypair),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Kubernetes cluster", err.Error())
@@ -134,6 +185,7 @@ func (r *kubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 
 	// Persist the id immediately so a poll timeout below can't orphan the cluster.
 	plan.ID = types.StringValue(cluster.ID)
+	fillUnsetPackages(&plan)
 	plan.Status = types.StringValue(cluster.Status)
 	plan.IPAddress = stringPtrToString(cluster.IPAddress)
 	plan.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
@@ -201,6 +253,14 @@ func (r *kubernetesClusterResource) Read(ctx context.Context, req resource.ReadR
 	state.Name = keepStr(state.Name, cluster.Name)
 	state.Region = keepStr(state.Region, cluster.Region)
 	state.Package = keepStr(state.Package, cluster.Package)
+	if np := cluster.NodePool; np != nil {
+		if np.Control != nil {
+			state.ControlPackage = keepStr(state.ControlPackage, derefString(np.Control.Package))
+		}
+		if np.Worker != nil {
+			state.WorkerPackage = keepStr(state.WorkerPackage, derefString(np.Worker.Package))
+		}
+	}
 	// version + worker_nodes are mutable (in-place upgrade/scale) — hydrate the live
 	// value so out-of-band changes show as drift and import populates them.
 	// control_nodes stays immutable (keepStr/keepInt semantics).
@@ -352,4 +412,47 @@ func (r *kubernetesClusterResource) pollClusterGone(ctx context.Context, id stri
 		// the poll doesn't return before the cluster releases its resources. The
 		// 404 branch above is the usual completion signal once the record is purged.
 	}, []string{"deleted", "destroyed"})
+}
+
+// fillUnsetPackages gives the package attributes that the config leaves unset
+// their value after create, by the API's rule: an override sets its own node
+// type, and package sets the other. When both overrides are set, package reads
+// the worker package, as the API's deprecated package field does.
+func fillUnsetPackages(m *kubernetesClusterModel) {
+	if m.ControlPackage.IsUnknown() {
+		m.ControlPackage = m.Package
+	}
+	if m.WorkerPackage.IsUnknown() {
+		m.WorkerPackage = m.Package
+	}
+	if m.Package.IsUnknown() {
+		m.Package = m.WorkerPackage
+	}
+}
+
+// keepStateWhenUnset plans the state value for an Optional + Computed
+// attribute that the config leaves unset, also when the state value is null.
+// UseStateForUnknown keeps only a non-null state value, so a null one plans as
+// unknown, and a RequiresReplace after it then replaces the resource.
+func keepStateWhenUnset() planmodifier.String { return keepStateWhenUnsetModifier{} }
+
+type keepStateWhenUnsetModifier struct{}
+
+func (keepStateWhenUnsetModifier) Description(context.Context) string {
+	return "When the configuration leaves the value unset, the value in state does not change."
+}
+
+func (m keepStateWhenUnsetModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (keepStateWhenUnsetModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// On create there is no state to keep, and on destroy there is no plan.
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+	if !req.ConfigValue.IsNull() {
+		return
+	}
+	resp.PlanValue = req.StateValue
 }
