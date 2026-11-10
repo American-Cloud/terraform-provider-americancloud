@@ -17,8 +17,8 @@ terraform {
 }
 
 provider "americancloud" {
-  # Credentials may be set here or via environment variables:
-  #   AMERICANCLOUD_API_CLIENT_ID, AMERICANCLOUD_API_CLIENT_SECRET
+  # Credentials may be set here or via the environment variable
+  #   AMERICANCLOUD_API_TOKEN
 }
 
 resource "americancloud_isolated_network" "net" {
@@ -63,8 +63,9 @@ for a walkthrough.
 
 | Provider setting | Environment variable | Purpose |
 |---|---|---|
-| `api_client_id` | `AMERICANCLOUD_API_CLIENT_ID` | API client ID |
-| `api_client_secret` | `AMERICANCLOUD_API_CLIENT_SECRET` | API client secret (sensitive) |
+| `api_token` | `AMERICANCLOUD_API_TOKEN` | API token, Full access preset (sensitive). Create one at [console.americancloud.com/api-tokens](https://console.americancloud.com/api-tokens) |
+| `api_client_id` | `AMERICANCLOUD_API_CLIENT_ID` | Legacy API key client ID |
+| `api_client_secret` | `AMERICANCLOUD_API_CLIENT_SECRET` | Legacy API key client secret (sensitive) |
 | `api_url` | `AMERICANCLOUD_API_URL` | API base URL override (optional) |
 
 ## Guides

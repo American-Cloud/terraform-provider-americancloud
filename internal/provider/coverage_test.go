@@ -14,7 +14,7 @@ import (
 // accounted for — mapped to a resource/data source or listed in notExposed with
 // a reason. SDK additions/renames on a version bump surface here as a failure.
 func TestSDKCoverage(t *testing.T) {
-	client := acclient.NewClient(option.WithAPIKey("coverage-dummy"), option.WithAPIClientSecret("coverage-dummy"))
+	client := acclient.NewClient(option.WithToken("coverage-dummy"))
 	cv := reflect.ValueOf(client).Elem()
 
 	var problems []string

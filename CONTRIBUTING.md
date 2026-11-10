@@ -30,7 +30,7 @@ provider_installation {
 ```sh
 go install .
 go test ./...          # unit + SDK coverage
-# In an examples dir, export AMERICANCLOUD_API_CLIENT_ID/_SECRET, then:
+# In an examples dir, export AMERICANCLOUD_API_TOKEN, then:
 terraform plan
 ```
 

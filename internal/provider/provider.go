@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"net/http"
 	"os"
 
 	acclient "github.com/American-Cloud/americancloud-sdk-go/client"
@@ -31,6 +32,7 @@ func New(version string) func() provider.Provider {
 
 // providerModel maps the provider configuration block.
 type providerModel struct {
+	APIToken        types.String `tfsdk:"api_token"`
 	APIClientID     types.String `tfsdk:"api_client_id"`
 	APIClientSecret types.String `tfsdk:"api_client_secret"`
 	APIURL          types.String `tfsdk:"api_url"`
@@ -46,15 +48,23 @@ func (p *americancloudProvider) Schema(_ context.Context, _ provider.SchemaReque
 		MarkdownDescription: "Manage American Cloud infrastructure — VMs, storage, networking, " +
 			"Kubernetes, and DNS — as code. Configure credentials below or via environment variables.",
 		Attributes: map[string]schema.Attribute{
+			"api_token": schema.StringAttribute{
+				Optional:  true,
+				Sensitive: true,
+				MarkdownDescription: "American Cloud API token (`amcld_…`). May also be set with the " +
+					"`AMERICANCLOUD_API_TOKEN` environment variable. Create tokens at " +
+					"[console.americancloud.com/api-tokens](https://console.americancloud.com/api-tokens). " +
+					"Use a token with the Full access preset; the provider creates and deletes resources.",
+			},
 			"api_client_id": schema.StringAttribute{
 				Optional: true,
-				MarkdownDescription: "American Cloud API client ID. May also be set with the " +
-					"`AMERICANCLOUD_API_CLIENT_ID` environment variable. Create API keys in the console.",
+				MarkdownDescription: "Legacy API key client ID. May also be set with the " +
+					"`AMERICANCLOUD_API_CLIENT_ID` environment variable. Use `api_token` for new configurations.",
 			},
 			"api_client_secret": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				MarkdownDescription: "American Cloud API client secret. May also be set with the " +
+				MarkdownDescription: "Legacy API key client secret. May also be set with the " +
 					"`AMERICANCLOUD_API_CLIENT_SECRET` environment variable.",
 			},
 			"api_url": schema.StringAttribute{
@@ -74,32 +84,49 @@ func (p *americancloudProvider) Configure(ctx context.Context, req provider.Conf
 	}
 
 	// Explicit config wins; fall back to environment variables.
+	token := firstNonEmpty(cfg.APIToken.ValueString(), os.Getenv("AMERICANCLOUD_API_TOKEN"))
 	clientID := firstNonEmpty(cfg.APIClientID.ValueString(), os.Getenv("AMERICANCLOUD_API_CLIENT_ID"))
 	clientSecret := firstNonEmpty(cfg.APIClientSecret.ValueString(), os.Getenv("AMERICANCLOUD_API_CLIENT_SECRET"))
 	baseURL := firstNonEmpty(cfg.APIURL.ValueString(), os.Getenv("AMERICANCLOUD_API_URL"))
 
-	if clientID == "" {
+	// One credential: an API token, or the legacy key pair. The API refuses a
+	// request that carries both, so the provider refuses the configuration.
+	var opts []option.RequestOption
+	switch {
+	case token != "" && (clientID != "" || clientSecret != ""):
 		resp.Diagnostics.AddAttributeError(
-			path.Root("api_client_id"),
-			"Missing API client ID",
-			"Set the api_client_id provider attribute or the AMERICANCLOUD_API_CLIENT_ID environment variable.",
+			path.Root("api_token"),
+			"Two credentials set",
+			"Set api_token (AMERICANCLOUD_API_TOKEN) or the api_client_id and api_client_secret pair, not both.",
 		)
-	}
-	if clientSecret == "" {
+	case token != "":
+		opts = append(opts, option.WithToken(token))
+	case clientID != "" && clientSecret != "":
+		// The Go SDK 1.8.0 has no option for the legacy pair. Send the two
+		// headers directly; the API accepts them as before.
+		header := http.Header{}
+		header.Set("X-API-Client-ID", clientID)
+		header.Set("X-API-Client-Secret", clientSecret)
+		opts = append(opts, option.WithHTTPHeader(header))
+	case clientID != "" || clientSecret != "":
 		resp.Diagnostics.AddAttributeError(
 			path.Root("api_client_secret"),
-			"Missing API client secret",
-			"Set the api_client_secret provider attribute or the AMERICANCLOUD_API_CLIENT_SECRET environment variable.",
+			"Incomplete API key",
+			"A legacy API key needs both api_client_id and api_client_secret "+
+				"(AMERICANCLOUD_API_CLIENT_ID and AMERICANCLOUD_API_CLIENT_SECRET).",
+		)
+	default:
+		resp.Diagnostics.AddAttributeError(
+			path.Root("api_token"),
+			"Missing credential",
+			"Set the api_token provider attribute or the AMERICANCLOUD_API_TOKEN environment variable. "+
+				"Create a token at https://console.americancloud.com/api-tokens.",
 		)
 	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	opts := []option.RequestOption{
-		option.WithAPIKey(clientID),
-		option.WithAPIClientSecret(clientSecret),
-	}
 	if baseURL != "" {
 		opts = append(opts, option.WithBaseURL(baseURL))
 	}

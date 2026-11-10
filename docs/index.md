@@ -21,10 +21,9 @@ terraform {
 }
 
 provider "americancloud" {
-  # Credentials may be set here or via environment variables:
-  #   AMERICANCLOUD_API_CLIENT_ID, AMERICANCLOUD_API_CLIENT_SECRET
-  # api_client_id     = "..."
-  # api_client_secret = "..."
+  # Credentials may be set here or via the environment variable
+  #   AMERICANCLOUD_API_TOKEN
+  # api_token = "amcld_..."
   # api_url           = "https://api.americancloud.com" # optional override
 }
 ```
@@ -34,6 +33,7 @@ provider "americancloud" {
 
 ### Optional
 
-- `api_client_id` (String) American Cloud API client ID. May also be set with the `AMERICANCLOUD_API_CLIENT_ID` environment variable. Create API keys in the console.
-- `api_client_secret` (String, Sensitive) American Cloud API client secret. May also be set with the `AMERICANCLOUD_API_CLIENT_SECRET` environment variable.
+- `api_client_id` (String) Legacy API key client ID. May also be set with the `AMERICANCLOUD_API_CLIENT_ID` environment variable. Use `api_token` for new configurations.
+- `api_client_secret` (String, Sensitive) Legacy API key client secret. May also be set with the `AMERICANCLOUD_API_CLIENT_SECRET` environment variable.
+- `api_token` (String, Sensitive) American Cloud API token (`amcld_…`). May also be set with the `AMERICANCLOUD_API_TOKEN` environment variable. Create tokens at [console.americancloud.com/api-tokens](https://console.americancloud.com/api-tokens). Use a token with the Full access preset; the provider creates and deletes resources.
 - `api_url` (String) Override the API base URL. May also be set with the `AMERICANCLOUD_API_URL` environment variable. Defaults to the production API.

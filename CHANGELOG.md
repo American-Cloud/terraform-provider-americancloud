@@ -6,6 +6,23 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+Tracks `americancloud-sdk-go` 1.8.0 and API 1.8.0.
+
+### Added
+
+- `api_token` provider attribute, or `AMERICANCLOUD_API_TOKEN`: authenticate
+  with an American Cloud API token. Create one at
+  [console.americancloud.com/api-tokens](https://console.americancloud.com/api-tokens)
+  with the Full access preset. The token is the credential for new
+  configurations.
+
+### Changed
+
+- `api_client_id` and `api_client_secret` are the legacy API key pair. They
+  keep working unchanged. A configuration that sets a token and the pair is
+  refused, as the API refuses a request with two credentials.
+- `americancloud-sdk-go` 1.7.2 → 1.8.0.
+
 ## [0.7.0] - 2026-10-29
 
 ### Added
