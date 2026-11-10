@@ -39,7 +39,10 @@ resource "americancloud_vm" "web" {
 }
 ```
 
-Create API keys at **[console.americancloud.com](https://console.americancloud.com)**.
+Create an API token at
+**[console.americancloud.com/api-tokens](https://console.americancloud.com/api-tokens)**
+with the **Full access** preset; the provider creates and deletes resources.
+A legacy API key pair (`api_client_id` and `api_client_secret`) still works.
 
 ## Resources
 
@@ -74,6 +77,7 @@ Narrative walkthroughs on the American Cloud docs site:
 
 - [Terraform guide](https://americancloud.com/docs/sdks/terraform) — provider setup, authentication, and managing resources as code
 - [SDKs & Terraform overview](https://americancloud.com/docs/sdks/overview) — when to reach for Terraform, an SDK, or the MCP server
+- [MCP server](https://americancloud.com/docs/mcp/overview) — manage the same resources from Claude, ChatGPT, Cursor, and other AI assistants
 - [Deploy with AI](https://americancloud.com/docs/deploy-with-ai/overview) — let an AI assistant build and ship to American Cloud
 
 ## Development
