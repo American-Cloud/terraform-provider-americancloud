@@ -6,6 +6,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-10
+
 Tracks `americancloud-sdk-go` 1.8.0 and API 1.8.0.
 
 ### Added
